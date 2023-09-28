@@ -1,0 +1,125 @@
+<<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Calculadora de Período de Férias, Licenças e Afastamentos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+</head>
+<body>
+    <h1>Calculadora de Período de Férias, Licenças e Afastamentos</h1>
+    <form id="calculator-form">
+        <label for="start-date">Data de Início:</label>
+        <input type="text" id="start-date" placeholder="DD/MM/AAAA" required aria-label="Data de Início"><br><br>
+
+        <label for="duration">Dias de Afastamento:</label>
+        <input type="number" id="duration" min="1" required aria-label="Dias de Afastamento"><br><br>
+
+        <button type="button" id="calculate-button">Calcular</button>
+    </form>
+
+    <div id="result" style="display: none;">
+        <h2>Resultado:</h2>
+        <p><span id="initial-date"></span> (<span id="initial-day"></span>)</p>
+        <p><span id="final-date"></span> (<span id="final-day"></span>)</p>
+        
+        <!-- Adicione a data de apresentação e o dia da semana da apresentação -->
+        <p><span id="presentation-date"></span> (<span id="presentation-day"></span>)</p>
+    </div>
+
+    <div id="error-message" style="display: none;" role="alert"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(function () {
+            $("#start-date").datepicker({
+                dateFormat: "dd/mm/yy", // Formato da data
+                changeMonth: true, // Permite alterar o mês
+                changeYear: true, // Permite alterar o ano
+            });
+            
+            // Adicione o código para inserir automaticamente as barras
+            $("#start-date").on("input", function () {
+                var value = $(this).val();
+                if (value.length === 2 || value.length === 5) {
+                    value += "/";
+                    $(this).val(value);
+                }
+            });
+        });
+        
+        document.addEventListener("DOMContentLoaded", function () {
+            const calculateButton = document.getElementById("calculate-button");
+            calculateButton.addEventListener("click", calculateDates);
+
+            function calculateDates() {
+                const startDateInput = document.getElementById("start-date");
+                const durationInput = document.getElementById("duration");
+                const resultDiv = document.getElementById("result");
+                const errorMessage = document.getElementById("error-message");
+
+                errorMessage.style.display = "none"; // Esconde mensagens de erro anteriores
+
+                const startDateString = startDateInput.value;
+                const duration = parseInt(durationInput.value);
+
+                // Validação da data de início
+                const dateParts = startDateString.split("/");
+                if (dateParts.length !== 3) {
+                    errorMessage.textContent = "Data de início inválida. Use o formato DD/MM/AAAA.";
+                    errorMessage.style.display = "block";
+                    return;
+                }
+
+                const day = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1; // Subtrai 1 do mês, pois os meses em JavaScript começam em 0
+                const year = parseInt(dateParts[2]);
+
+                const startDate = new Date(year, month, day);
+                if (isNaN(startDate.getTime())) {
+                    errorMessage.textContent = "Data de início inválida. Use o formato DD/MM/AAAA.";
+                    errorMessage.style.display = "block";
+                    return;
+                }
+
+                // Cálculos de data
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + duration - 1);
+
+                const presentationDate = new Date(endDate);
+                presentationDate.setDate(endDate.getDate() + 1);
+
+                // Dias da semana
+                const daysOfWeek = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+                // Formate as datas no formato DD/MM/AAAA
+                const formattedStartDate = `${startDate.getDate().toString().padStart(2, '0')}/${(startDate.getMonth() + 1).toString().padStart(2, '0')}/${startDate.getFullYear()}`;
+                const formattedEndDate = `${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')}/${endDate.getFullYear()}`;
+                const formattedPresentationDate = `${presentationDate.getDate().toString().padStart(2, '0')}/${(presentationDate.getMonth() + 1).toString().padStart(2, '0')}/${presentationDate.getFullYear()}`;
+
+                // Obtém os nomes dos dias da semana
+                const initialDayOfWeek = daysOfWeek[startDate.getDay()];
+                const finalDayOfWeek = daysOfWeek[endDate.getDay()];
+                const presentationDayOfWeek = daysOfWeek[presentationDate.getDay()];
+
+                // Atualize os elementos HTML com os resultados
+                document.getElementById("initial-date").textContent = `Data Inicial: ${formattedStartDate}`;
+                document.getElementById("final-date").textContent = `Data Final: ${formattedEndDate}`;
+                document.getElementById("presentation-date").textContent = `Data de Apresentação: ${formattedPresentationDate}`;
+
+                document.getElementById("initial-day").textContent = initialDayOfWeek;
+                document.getElementById("final-day").textContent = finalDayOfWeek;
+                document.getElementById("presentation-day").textContent = presentationDayOfWeek;
+
+                resultDiv.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>
